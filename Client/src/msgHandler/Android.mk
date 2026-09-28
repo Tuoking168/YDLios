@@ -1,0 +1,435 @@
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+LOCAL_MODULE := game_static
+DEBUG := 0
+
+LOCAL_MODULE_FILENAME := libgame
+
+LOCAL_SRC_FILES := \
+../../shared/Tokens.cpp \
+../../shared/MsgStream.cpp \
+../../shared/MsgFactoryNetwork.cpp \
+../../shared/MsgFactoryNetworkEx.cpp \
+../../shared/AreaChecker/AreaChecker.cpp \
+../../shared/crc32.cpp \
+common/AtomicOp.cpp \
+common/log.cpp \
+common/MsgBuffer.cpp \
+common/MsgPacket.cpp \
+common/NetRunnable.cpp \
+common/NetworkService.cpp \
+common/stdafx.cpp \
+common/Threading.cpp \
+common/Message/MsgBase.cpp \
+common/Message/MsgBuilderSimple.cpp \
+common/Message/MsgFactoryByMap.cpp \
+common/Message/MsgLogger.cpp \
+controls/CPCheckBox.cpp \
+controls/CPChecker.cpp \
+controls/CPComboBox.cpp \
+controls/CPDelayRefresh.cpp \
+controls/CPItemComponents.cpp \
+controls/CPNodeHelper.cpp \
+controls/CPProgressBar.cpp \
+controls/CPRichText.cpp \
+controls/CPScrollbar.cpp \
+controls/CPText.cpp \
+controls/CPTips.cpp \
+controls/CPUpdater.cpp \
+controls/CPTouchTip.cpp \
+element/AnimElement.cpp \
+element/BaseElement.cpp \
+element/CPElementHelper.cpp \
+entry/AppDelegate.cpp \
+entry/MainLua.cpp \
+event/CPEventDispatcher.cpp \
+event/CPEventHelper.cpp \
+event/EventDispatcher.cpp \
+event/EventHandler.cpp \
+ext/AccelerationAction.cpp \
+ext/AnimationLoader.cpp \
+ext/AstarPathfinder.cpp \
+ext/BasePanel.cpp \
+ext/CCActionDestroy.cpp \
+ext/CCActionEx.cpp \
+ext/CCAnimationSprite.cpp \
+ext/CCFileDataStream.cpp \
+ext/CCFlashAnimation.cpp \
+ext/CCLayerEx.cpp \
+ext/CCMenuEx.cpp \
+ext/CCMenuItemFontColor.cpp \
+ext/CCMenuItemFontEx.cpp \
+ext/CCMenuItemInput.cpp \
+ext/CCMenuItemTextImage.cpp \
+ext/CCTabelViewEx.cpp \
+ext/CCTextFieldEX.cpp \
+ext/GeneralMenu.cpp \
+ext/GeneralMenuListener.cpp \
+ext/md5.cpp \
+ext/PartPanel.cpp \
+ext/PorgressBar.cpp \
+ext/Properties.cpp \
+ext/RadioGroup.cpp \
+ext/RadioGroupEx.cpp \
+ext/TextField.cpp \
+ext/TouchCover.cpp \
+ext/json/json_reader.cpp \
+ext/json/json_value.cpp \
+ext/json/json_writer.cpp \
+logic/BagOperator.cpp \
+logic/ItemOperator.cpp \
+logic/TimeManager.cpp \
+logic/CPUpdateFunctor/CPUpdateFunctorImp.cpp \
+logic/CPUpdateFunctor/CPUpdateFunctorManager.cpp \
+logic/CPUpdateFunctor/CPUpdateFunctorPotionUse.cpp \
+logic/CPUpdateFunctor/CPUpdateFunctorSkillUse.cpp \
+logic/platform/AndroidPlatform.cpp \
+logic/platform/IPlatform.cpp \
+module/ModuleData.cpp \
+msgHandler/mActivity.cpp \
+msgHandler/mAuth.cpp \
+msgHandler/mDownload.cpp \
+msgHandler/mGuild.cpp \
+msgHandler/mItem.cpp \
+msgHandler/mLogin.cpp \
+msgHandler/mPet.cpp \
+msgHandler/mPlayer.cpp \
+msgHandler/mScene.cpp \
+msgHandler/MsgHandler.cpp \
+msgHandler/MsgMaster.cpp \
+msgHandler/MsgShop.cpp \
+msgHandler/MsgTrade.cpp \
+msgHandler/mSocial.cpp \
+msgHandler/mTeam.cpp \
+msgHandler/mWorld.cpp \
+network/HandleMessage.cpp \
+network/HttpDownload.cpp \
+network/HttpDownloadRunnable.cpp \
+network/HttpTextRecv.cpp \
+network/LocalNetwork.cpp \
+network/MsgCreator.cpp \
+network/MsgListener.cpp \
+network/NetProtocol.cpp \
+res/AudioLoader.cpp \
+res/AudioLoading.cpp \
+res/CPAnimationManager.cpp \
+res/Path.cpp \
+res/PlistLoader.cpp \
+scene/BossLifeBar.cpp \
+scene/ConfirmPrompt.cpp \
+scene/ControlPanel.cpp \
+scene/Game.cpp \
+scene/GameAlive.cpp \
+scene/GameMap.cpp \
+scene/GameUI.cpp \
+scene/Login.cpp \
+scene/LoginHelper.cpp \
+scene/LowerRightNotificationPanel.cpp \
+scene/MapHelper.cpp \
+scene/MiniChatPanel.cpp \
+scene/MiniMapLayer.cpp \
+scene/NotificationHelper.cpp \
+scene/NotificationLayer.cpp \
+scene/PanelFactory.cpp \
+scene/PatchUpdatePanel.cpp \
+scene/ResLoading.cpp \
+scene/SceneFactory.cpp \
+scene/SceneHelper.cpp \
+scene/SceneManager.cpp \
+scene/ScriptUpdatePanel.cpp \
+scene/SkillLayer.cpp \
+scene/SlideTable.cpp \
+scene/TopActivity.cpp \
+scene/WelcomeScene.cpp \
+scene/panel/ActivityStatePanel.cpp \
+scene/panel/ArenaPanel.cpp \
+scene/panel/BlackColorPanel.cpp \
+scene/panel/BuffPanel.cpp \
+scene/panel/ChatPanel.cpp \
+scene/panel/CommandPanel.cpp \
+scene/panel/ConvoyBeautyPanel.cpp \
+scene/panel/DogSkillPanel.cpp \
+scene/panel/EffectSprite.cpp \
+scene/panel/FloatPanel.cpp \
+scene/panel/FullScreenPanel.cpp \
+scene/panel/HeadPanel.cpp \
+scene/panel/HonorPanel.cpp \
+scene/panel/IconTipPanel.cpp \
+scene/panel/LeftTipsPanel.cpp \
+scene/panel/MainPanel.cpp \
+scene/panel/MenuListPanel.cpp \
+scene/panel/MidScreenPanel.cpp \
+scene/panel/MinePanel.cpp \
+scene/panel/MinMapPanel.cpp \
+scene/panel/NPCbagPanel.cpp \
+scene/panel/NPCPanel.cpp \
+scene/panel/OperateMenu.cpp \
+scene/panel/OptionsHelper.cpp \
+scene/panel/ReliveAlertPanel.cpp \
+scene/panel/RenamePanel.cpp \
+scene/panel/SelectRolePanel.cpp \
+scene/panel/SpecialBagPanel.cpp \
+scene/panel/TargetPanel.cpp \
+scene/panel/TaskPanel.cpp \
+scene/panel/TradeOperation.cpp \
+scene/panel/TradePanel.cpp \
+scene/panel/TreasureHuntPanel.cpp \
+scene/panel/activity/ActivityDataHelper.cpp \
+scene/panel/activity/AddUpChargePanel.cpp \
+scene/panel/activity/CombinedServer.cpp \
+scene/panel/activity/ConsumeDrawPanel.cpp \
+scene/panel/activity/EveryDayActivePanel.cpp \
+scene/panel/activity/EveryDayFirstChargePanel.cpp \
+scene/panel/activity/EveryDaySalaryPanel.cpp \
+scene/panel/activity/FirstChargePanel.cpp \
+scene/panel/activity/GiftConversionPanel.cpp \
+scene/panel/activity/InvestPlanPanel.cpp \
+scene/panel/activity/JuBaoPenPanel.cpp \
+scene/panel/activity/LaunchedFocus.cpp \
+scene/panel/activity/LevelSportsPanel.cpp \
+scene/panel/activity/LoginRewardPanel.cpp \
+scene/panel/activity/LuckyCircle.cpp \
+scene/panel/activity/MonthGiftPanel.cpp \
+scene/panel/activity/MountSportsPanel.cpp \
+scene/panel/activity/OnlineGiftPanel.cpp \
+scene/panel/activity/OpenActivityPanel.cpp \
+scene/panel/activity/OpenSportsPanel.cpp \
+scene/panel/activity/PanLongEquipPanel.cpp \
+scene/panel/activity/ItemBindListPanel.cpp \
+scene/panel/activity/RankPanel.cpp \
+scene/panel/activity/SingleRechargePanel.cpp \
+scene/panel/activity/StoneSportsPanel.cpp \
+scene/panel/activity/TimeLimitGiftPanel.cpp \
+scene/panel/activity/TopActivityPanel.cpp \
+scene/panel/activity/TopHelpPanel.cpp \
+scene/panel/activity/TopMergeServerPanel.cpp \
+scene/panel/activity/TopSportsPanel.cpp \
+scene/panel/activity/TopWelfarePanel.cpp \
+scene/panel/activity/WealthGodPanel.cpp \
+scene/panel/activity/CombinedServerRankPanel.cpp \
+scene/panel/ForgingPanel/CBHCpanel.cpp \
+scene/panel/ForgingPanel/CommonFunction.cpp \
+scene/panel/ForgingPanel/EquipBasepanel.cpp \
+scene/panel/ForgingPanel/ForgingMainPanel.cpp \
+scene/panel/ForgingPanel/HSHCpanel.cpp \
+scene/panel/ForgingPanel/HWpanel.cpp \
+scene/panel/ForgingPanel/HWTHpanel.cpp \
+scene/panel/ForgingPanel/MergeMainPanel.cpp \
+scene/panel/ForgingPanel/RoleBag.cpp \
+scene/panel/ForgingPanel/SXZYpanel.cpp \
+scene/panel/ForgingPanel/WPHCpanel.cpp \
+scene/panel/ForgingPanel/ZBJDpanel.cpp \
+scene/panel/ForgingPanel/ZBQHpanel.cpp \
+scene/panel/ForgingPanel/ZBSJpanel.cpp \
+scene/panel/ForgingPanel/ZSDZpanel.cpp \
+scene/panel/ForgingPanel/ZBFMpanel.cpp \
+scene/panel/functionPanel/ActivityPanel.cpp \
+scene/panel/functionPanel/AttributePanel.cpp \
+scene/panel/functionPanel/BagCellPanel.cpp \
+scene/panel/functionPanel/BagPanel.cpp \
+scene/panel/functionPanel/BoothPanel.cpp \
+scene/panel/functionPanel/BoothSellBook.cpp \
+scene/panel/functionPanel/BoothsellNotify.cpp \
+scene/panel/functionPanel/BuffExPanel.cpp \
+scene/panel/functionPanel/CharacterPanel.cpp \
+scene/panel/functionPanel/CommonPanel.cpp \
+scene/panel/functionPanel/DesignationPanel.cpp \
+scene/panel/functionPanel/ItemTooltip.cpp \
+scene/panel/functionPanel/PetAttributePanel.cpp \
+scene/panel/functionPanel/PetPanel.cpp \
+scene/panel/functionPanel/SkillPanel.cpp \
+scene/panel/functionPanel/SoulStonePanel.cpp \
+scene/panel/functionPanel/HorseAttributePanel.cpp \
+scene/panel/functionPanel/HorsePanel.cpp \
+scene/panel/group/GroupPanel.cpp \
+scene/panel/guide/GuideHelper.cpp \
+scene/panel/guide/GuidePanel.cpp \
+scene/panel/guild/DonateKeyboard.cpp \
+scene/panel/guild/DTextField.cpp \
+scene/panel/guild/GuildBrowsePanel.cpp \
+scene/panel/guild/GuildBuildingPanel.cpp \
+scene/panel/guild/GuildChatPanel.cpp \
+scene/panel/guild/GuildCombatPanel.cpp \
+scene/panel/guild/GuildEventPanel.cpp \
+scene/panel/guild/GuildInfoPanel.cpp \
+scene/panel/guild/GuildMemberPanel.cpp \
+scene/panel/guild/GuildPanel.cpp \
+scene/panel/guild/PopAlertPanel.cpp \
+scene/panel/guild/PopApplicationPanel.cpp \
+scene/panel/guild/PopPullDownPanel.cpp \
+scene/panel/mining/MiningPanel.cpp \
+scene/panel/setting/SettingBasePanel.cpp \
+scene/panel/setting/SettingFastPanel.cpp \
+scene/panel/setting/SettingMainPanel.cpp \
+scene/panel/setting/SettingProtectPanel.cpp \
+scene/panel/setting/SettingTakePanel.cpp \
+scene/panel/setting/SystemSetting.cpp \
+scene/panel/shop/NpcShopComp.cpp \
+scene/panel/shop/NpcShopPanel.cpp \
+scene/panel/shop/NumberKeyboard.cpp \
+scene/panel/shop/RubbishBagPanel.cpp \
+scene/panel/shop/ShopPanel.cpp \
+scene/panel/social/CouplePanel.cpp \
+scene/panel/social/EnemyPanel.cpp \
+scene/panel/social/FriendsPanel.cpp \
+scene/panel/social/MentorshipPanel.cpp \
+scene/panel/social/SocialHelper.cpp \
+scene/panel/social/SocialPanel.cpp \
+scene/panel/social/dialog/AddApprenticeConfirmDialog.cpp \
+scene/panel/social/dialog/AddFriendConfirmDialog.cpp \
+scene/panel/social/dialog/AddFriendDialog.cpp \
+scene/panel/social/dialog/AddMasterConfirmDialog.cpp \
+scene/panel/social/dialog/ApprenticeListDialog.cpp \
+scene/panel/social/dialog/DialogLayer.cpp \
+scene/panel/social/dialog/MasterListDialog.cpp \
+scene/panel/social/dialog/ProposalConfirmDialog.cpp \
+scene/panel/social/dialog/ProposalRequestDialog.cpp \
+scene/panel/social/dialog/SocialDelConfirmDialog.cpp \
+scene/panel/social/dialog/SocialMsgNotifyDialog.cpp \
+scene/panel/team/TeamOperationPanel.cpp \
+scene/panel/team/TeamPanel.cpp \
+scene/panel/vip/RechargePanel.cpp \
+scene/panel/vip/VipPanel.cpp \
+scene/panel/worship/EmigratedPanel.cpp \
+scene/panel/worship/SpiderPanel.cpp \
+scene/panel/worship/WorshipPanel.cpp \
+script/LuaWrapper.cpp \
+script/MainLua.cpp \
+userdata/ActivityData.cpp \
+userdata/BoothData.cpp \
+userdata/CacheData.cpp \
+userdata/FuncData.cpp \
+userdata/GameData.cpp \
+userdata/GuildData.cpp \
+userdata/HeroData.cpp \
+userdata/IconTipsData.cpp \
+userdata/LayoutData.cpp \
+userdata/MineData.cpp \
+userdata/NPCFunctionData.cpp \
+userdata/PlayerInfoData.cpp \
+userdata/RankData.cpp \
+userdata/SceneData.cpp \
+userdata/StaticData.cpp \
+userdata/SystemData.cpp \
+userdata/TaskData.cpp \
+userdata/UserData.cpp \
+userdata/UserItemData.cpp \
+userdata/UserPetData.cpp \
+userdata/WorldData.cpp \
+userdata/activitydata/EmigratedData.cpp \
+userdata/activitydata/SpiderData.cpp \
+userdata/activitydata/TreasureHuntData.cpp \
+userdata/activitydata/WorshipData.cpp \
+userdata/frienddata/FriendData.cpp \
+userdata/luadata/LayerDataLua.cpp \
+userdata/luadata/LuaData.cpp \
+userdata/luadata/MinimapLua.cpp \
+userdata/luadata/MonsterLua.cpp \
+userdata/luadata/TasktipsLua.cpp \
+userdata/mapdata/MapData.cpp \
+userdata/mapdata/Maploader.cpp \
+userdata/mapdata/PixesGround.cpp \
+userdata/mapdata/PixesGroundGrid.cpp \
+userdata/mapdata/PixesMap.cpp \
+userdata/netdata/AliveGhost.cpp \
+userdata/netdata/AutoAttack.cpp \
+userdata/netdata/GameRole.cpp \
+userdata/netdata/Ghost.cpp \
+userdata/netdata/GhostManager.cpp \
+userdata/netdata/HeroAvatar.cpp \
+userdata/netdata/HeroModel.cpp \
+userdata/netdata/IGhostVisitor.cpp \
+userdata/netdata/ItemGhost.cpp \
+userdata/netdata/NetCharacter.cpp \
+userdata/netdata/OtherRole.cpp \
+userdata/repodata/RepoData.cpp \
+userdata/skilldata/SkillDaoShi.cpp \
+userdata/skilldata/SkillEffect.cpp \
+userdata/skilldata/SkillFaShi.cpp \
+userdata/skilldata/SkillModel.cpp \
+userdata/skilldata/SkillState.cpp \
+userdata/skilldata/SkillZhanShi.cpp \
+userdata/socialdata/SocialData.cpp \
+userdata/statetimer/FightingState.cpp \
+userdata/teamdata/TeamData.cpp \
+userdata/teamdata/TeamMsgSender.cpp \
+userdata/testdata/TestData.cpp \
+utils/FileUtils.cpp \
+utils/RichTextUtils.cpp \
+utils/StringUtils.cpp \
+utils/TestUtils.cpp \
+patchdata/ScriptPatchManager.cpp \
+
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/  \
+			$(LOCAL_PATH)/common \
+			$(LOCAL_PATH)/common/Message \
+			$(LOCAL_PATH)/entry \
+			$(LOCAL_PATH)/ext \
+			$(LOCAL_PATH)/network \
+			$(LOCAL_PATH)/res \
+			$(LOCAL_PATH)/purchase \
+			$(LOCAL_PATH)/scene \
+			$(LOCAL_PATH)/event \
+			$(LOCAL_PATH)/script \
+			$(LOCAL_PATH)/panel \
+			$(LOCAL_PATH)/module \
+			$(LOCAL_PATH)/download \
+			$(LOCAL_PATH)/userdata \
+			$(LOCAL_PATH)/patchdata \
+			$(LOCAL_PATH)/userdata/htmldata \
+			$(LOCAL_PATH)/userdata/mapdata \
+			$(LOCAL_PATH)/userdata/netdata \
+			$(LOCAL_PATH)/userdata/skilldata \
+			$(LOCAL_PATH)/userdata/ui_widget \
+			$(LOCAL_PATH)/../../shared \
+			$(LOCAL_PATH)/../../shared/AreaChecker \
+			$(LOCAL_PATH)/../../External/cocos2dx \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform/android \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform/android/jni \
+			$(LOCAL_PATH)/../../External/cocos2dx/include \
+			$(LOCAL_PATH)/../../External/cocos2dx/kazmath/include \
+			$(LOCAL_PATH)/../../External/CocosDenshion/include \
+			$(LOCAL_PATH)/../../External/cocos2dx/lua_support \
+			$(LOCAL_PATH)/../../External/cocos2dx/cocoa \
+			$(LOCAL_PATH)/../../External/cocos2dx/actions \
+			$(LOCAL_PATH)/../../External/cocos2dx/base_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/effects \
+			$(LOCAL_PATH)/../../External/cocos2dx/extensions \
+			$(LOCAL_PATH)/../../External/cocos2dx/keypad_dispatcher \
+			$(LOCAL_PATH)/../../External/cocos2dx/menu_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/particle_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/label_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/shaders \
+			$(LOCAL_PATH)/../../External/cocos2dx/sprite_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/support \
+			$(LOCAL_PATH)/../../External/cocos2dx/text_input_node \
+			$(LOCAL_PATH)/../../External/cocos2dx/script_support \
+			$(LOCAL_PATH)/../../External/cocos2dx/textures \
+			$(LOCAL_PATH)/../../External/cocos2dx/tileMap_parallax_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/touch_dispatcher \
+			$(LOCAL_PATH)/../../External/cocos2dx/layers_scenes_transitions_nodes \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform/third_party/android \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform/third_party/android/prebuilt/iconv/include \
+			$(LOCAL_PATH)/../../External/cocos2dx/platform/third_party/android/prebuilt/libcurl/include/curl \
+			$(LOCAL_PATH)/../../External/scripting/lua/tolua \
+			$(LOCAL_PATH)/../../External/scripting/lua/lua \
+			$(LOCAL_PATH)/../../External/scripting/lua/cocos2dx_support \
+			$(LOCAL_PATH)/../../External/extensions \
+			$(LOCAL_PATH)/../../External/extensions/GUI/CCScrollView 
+
+
+LOCAL_WHOLE_STATIC_LIBRARIES := cocos2dx_static
+LOCAL_WHOLE_STATIC_LIBRARIES += cocosdenshion_static
+LOCAL_WHOLE_STATIC_LIBRARIES += cocos_extension_static
+LOCAL_WHOLE_STATIC_LIBRARIES += cocos_lua_static
+LOCAL_CPPFLAGS += -fexceptions -DCOCOS2D_DEBUG=0 -Wno-deprecated -DNDEBUG -O3
+
+LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
+
+include $(BUILD_STATIC_LIBRARY)
+
+$(call import-module,CocosDenshion/android)
+$(call import-module,cocos2dx)
+$(call import-module,extensions)
+$(call import-module,scripting/lua/proj.android)

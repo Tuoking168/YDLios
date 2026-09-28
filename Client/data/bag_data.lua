@@ -1,0 +1,44 @@
+if not (type(gdBagslot)=="table") then
+	gdBagslot = {}
+end
+
+gdBagslot[41] = 1
+gdBagslot[42] = 2
+gdBagslot[43] = 3
+gdBagslot[44] = 4
+gdBagslot[45] = 5
+gdBagslot[46] = 6
+gdBagslot[47] = 7
+gdBagslot[48] = 8
+gdBagslot[49] = 9
+gdBagslot[50] = 10
+gdBagslot[51] = 11
+gdBagslot[52] = 12
+gdBagslot[53] = 13
+gdBagslot[54] = 14
+gdBagslot[55] = 15
+gdBagslot[56] = 16
+gdBagslot[57] = 17
+gdBagslot[58] = 18
+gdBagslot[59] = 19
+gdBagslot[60] = 20
+gdBagslot[61] = 21
+gdBagslot[62] = 22
+gdBagslot[63] = 23
+gdBagslot[64] = 24
+gdBagslot[65] = 25
+gdBagslot[66] = 26
+gdBagslot[67] = 27
+gdBagslot[68] = 28
+gdBagslot[69] = 29
+gdBagslot[70] = 30
+gdBagslot[71] = 31
+gdBagslot[72] = 32
+gdBagslot[73] = 33
+gdBagslot[74] = 34
+gdBagslot[75] = 35
+gdBagslot[76] = 36
+gdBagslot[77] = 37
+gdBagslot[78] = 38
+gdBagslot[79] = 39
+gdBagslot[80] = 40

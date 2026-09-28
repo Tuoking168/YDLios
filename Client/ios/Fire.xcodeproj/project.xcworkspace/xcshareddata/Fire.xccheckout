@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>554C72C3-057B-4E19-865A-AC73F0C50599</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Fire</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>dcd4c397-7fcc-47ba-8f45-52810ff7e63e++9466</key>
+		<string>svn://ceapon.oicp.net:8325/cp/fire</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>v20141231/Client/ios/Fire.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>dcd4c397-7fcc-47ba-8f45-52810ff7e63e++9466</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectRepositoryRootDictionary</key>
+	<dict>
+		<key>dcd4c397-7fcc-47ba-8f45-52810ff7e63e++9466</key>
+		<string>svn://ceapon.oicp.net:8325/cp</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>svn://ceapon.oicp.net:8325/cp/fire/v20141231/Client/ios/Fire.xcodeproj</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>dcd4c397-7fcc-47ba-8f45-52810ff7e63e++9466</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.subversion</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>dcd4c397-7fcc-47ba-8f45-52810ff7e63e++9466</string>
+			<key>IDESourceControlWCCName</key>
+			<string>fire</string>
+		</dict>
+	</array>
+</dict>
+</plist>

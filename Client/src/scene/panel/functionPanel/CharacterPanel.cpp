@@ -1,0 +1,846 @@
+/**
+ * CharacterPanel - ????????
+ * ??????????????????????????????UI???
+ */
+
+#include "CharacterPanel.h"
+#include "userdata/GameData.h"
+#include "userdata/UserData.h"
+#include "userdata/SystemData.h"
+#include "userdata/netdata/GameRole.h"
+#include "network/HandleMessage.h"
+#include "MsgItem.h"
+#include "userdata/netdata/NetItem.h"
+#include "userdata/netdata/HeroModel.h"
+#include "event/EventProtocol.h"
+#include "userdata/netdata/HeroModel.h"
+#include "scene/panel/functionPanel/ItemTooltip.h"
+#include "ext/GeneralMenu.h"
+#include "scene/Game.h"
+#include "scene/GameUI.h"
+#include "userdata/HeroData.h"
+#include "script/LuaWrapper.h"
+#include "EntityDefinition.h"
+#include "userdata/netdata/OtherRole.h"
+#include "scene/panel/ForgingPanel/CommonFunction.h"
+#include "userdata/StaticData.h"
+#include "controls/CPCheckBox.h"
+#include "module/UserDataModule.h"
+#include "userdata/FuncData.h"
+#include "ext/CCActionDestroy.h"
+#include "event/CPEventDispatcher.h"
+#include "event/CPEventHelper.h"
+
+// ??????????????? - 24??????????????????
+const CCPoint EquipPos[Equip_Total]=
+{
+	ccp(49, 397),	// 0: ????
+	ccp(49, 327),	// 1: ????
+	ccp(49, 258),	// 2: ????
+	ccp(49, 188),	// 3: ????
+	ccp(49, 119),	// 4: ???
+	ccp(49, 50),	// 5: ???
+	ccp(126, 50),	// 6: ??
+	ccp(201, 50),	// 7: ???
+	ccp(280, 50),	// 8: ????
+	ccp(356, 50),	// 9: ????
+	ccp(356, 119),	// 10: ???2
+	ccp(356, 188),	// 11: ????2
+	ccp(356, 258),	// 12: ????
+	ccp(356, 327),	// 13: ???
+	ccp(356, 397),	// 14: ???
+	ccp(280, 397),	// 15: ????
+	ccp(126, 397),	// 16: ??
+	ccp(280, 119),	// 17: ???
+	ccp(-1120, 155),	// 18: ???????????????
+	ccp(-995, 155),	// 19: ??????????????
+	ccp(-870, 155),	// 20: ???????????????
+	ccp(-1120, 72),	// 21: ??????????????
+	ccp(-995, 72),	// 22: ??????????????
+	ccp(-870, 72)	// 23: ??????????????
+};
+
+// ????????????????????
+std::string EquipName[Equip_Total]=
+{
+	"ui.rolepanel.equipname.necklace",   // ????
+	"ui.rolepanel.equipname.weapon",     // ????
+	"ui.rolepanel.equipname.huanwu",     // ????
+	"ui.rolepanel.equipname.bracelet",   // ????
+	"ui.rolepanel.equipname.ring",       // ???
+	"ui.rolepanel.equipname.jewel",      // ???
+	"ui.rolepanel.equipname.fashion",    // ??
+	"ui.rolepanel.equipname.wing",       // ???
+	"ui.rolepanel.equipname.belt",       // ????
+	"ui.rolepanel.equipname.shoes",      // ????
+	"ui.rolepanel.equipname.ring",       // ???2
+	"ui.rolepanel.equipname.bracelet",   // ????2
+	"ui.rolepanel.equipname.clothes",    // ????
+	"ui.rolepanel.equipname.medal",      // ???
+	"ui.rolepanel.equipname.helmet",     // ???
+	"ui.rolepanel.equipname.stuff",      // ????
+	"ui.rolepanel.equipname.foot",       // ??
+	"ui.rolepanel.equipname.Yuanshen",   // ???
+	"ui.rolepanel.equipname.Shenqi1",    // ????1????????
+	"ui.rolepanel.equipname.Shenqi2",    // ????2???????
+	"ui.rolepanel.equipname.Shenqi3",    // ????3????????
+	"ui.rolepanel.equipname.Shenqi4",    // ????4???????
+	"ui.rolepanel.equipname.Shenqi5",    // ????5???????
+	"ui.rolepanel.equipname.Shenqi6"     // ????6???????
+};
+
+static CCRect turnRect;  // ?????????????????
+
+const float DOUBLE_CLICK_TIME = 0.2f;  // ?????????????????
+
+// ???????????
+CharacterPanel* CharacterPanel::characterPanel = NULL;
+
+/**
+ * CharacterPanel??????
+ * ????????????????
+ */
+CharacterPanel::CharacterPanel():
+	m_heroModel(NULL),        // ????????????????
+	mNameLabel(NULL),         // ????????????????  
+	m_itemmenu(NULL),         // ????????????????
+	m_menu(NULL),             // ???????????????
+	m_pSelectBorder(NULL),    // ????????????????
+	m_bIsSelf(true),          // ??????????????
+	m_bInArtifactMode(false)  // ????????????
+{
+	m_bEquipRefreshScheduled = false;  // init: no pending delayed refresh
+	// ??????????????????
+	CPEvtDispatcher.addEventListener(CPEventName::MSG_CHANGE, this);
+}
+
+/**
+ * CharacterPanel????????
+ * ???????
+ */
+CharacterPanel::~CharacterPanel()
+{
+	CC_SAFE_DELETE(m_heroModel);  // ????????????
+	CPEvtDispatcher.removeEventListener(CPEventName::MSG_CHANGE, this);  // ??????????
+}
+
+/**
+ * CharacterPanel::create - ?????????????
+ * @param isSelf: ??????????????
+ * @return: ?????????????????
+ */
+CharacterPanel* CharacterPanel::create(bool isSelf)
+{
+	CharacterPanel* characterPanel = new CharacterPanel();
+	if(characterPanel && characterPanel->init(isSelf))
+	{
+		characterPanel->autorelease();  // ???????????
+		return characterPanel;
+	}
+	// ???????????????
+	if (characterPanel)
+	{
+		delete characterPanel;
+	}
+	return NULL;
+}
+
+/**
+ * CharacterPanel::init - ???????????
+ * @param isSelf: ??????????????
+ * @return: ??????????
+ */
+bool CharacterPanel::init(bool isSelf)
+{
+    // 1. ???????????
+    if (!CCLayer::init())
+        return false;
+
+    // 2. ?????????????
+    m_bIsSelf = isSelf;      // ??????????????????
+    m_nHeight = 432;         // ?????
+    m_nWidth = 320;          // ??????
+    
+    // 3. ?????????
+    addCover(SystemData::getLayoutPoint("ui_func.rightmenu.pos"));
+
+    // 4. ?????????????
+    setAnchorPoint(CCPointZero);
+    setPosition(CCPointZero);
+
+    // 5. ??????????????
+    m_bkg = SystemData::getScale9SpriteByPlist("ui.bag.small_bkg", 390, 429);
+    m_bkg->setAnchorPoint(CCPointZero);
+    m_bkg->setContentSize(CCSizeMake(390, 429));
+    m_bkg->setPosition(ccp(8, 8));
+    addChild(m_bkg, 0);  // ??????????zOrder=0
+
+    // 6. ?????????????1??
+    m_plong = SystemData::getSpriteByPlist("ui.rolepanel.long");
+    m_plong->setPosition(ccp(200, 270));
+    addChild(m_plong, 1);  // ????????1???????????
+
+    // 7. ?????????????1??
+    m_rolebkg = SystemData::getSpriteByPlist("ui.rolepanel.role_bkg");
+    m_rolebkg->setPosition(ccp(200, 115));
+    addChild(m_rolebkg, 1);  // ?????????1???????????
+
+    // 8. ??????????????????2??
+    CCNode* pHeroNode = CCNode::create();
+    pHeroNode->setAnchorPoint(CCPointZero);
+    pHeroNode->setPosition(CCPointZero);
+    addChild(pHeroNode, 2);  // ?????????2??????????????
+
+    // 9. ?????????????????
+    m_heroModel = HeroModel::create();
+    if (!m_heroModel)
+    {
+        return false;  // ?????????
+    }
+    
+    // 10. ????????????????????
+    if (m_bIsSelf)
+    {
+        m_heroModel->update(GameData::s_user->m_pMainRole);    // ?????????????
+    }
+    else
+    {
+        m_heroModel->update(GameData::s_user->m_pOtherRole);   // ????????????????
+    }
+    
+    // 11. ?????????????????
+    m_heroModel->setPosition(ccp(135, 95));
+    m_heroModel->attach(pHeroNode);
+    pHeroNode->setScale(1.5f);  // ???1.5??
+
+    // 12. ?????????????????????????????????????????3??
+    if (m_bIsSelf)
+    {
+        if (!m_bInArtifactMode)  // ????????????????????
+        {
+            // 12.1 ???????????
+            CCLabelTTF* pLabel1 = SystemData::getLabelTTF("ui_character_label1");
+            pLabel1->setHorizontalAlignment(kCCTextAlignmentLeft);
+            pLabel1->setColor(ccWHITE);
+            pLabel1->setFontSize(18);
+            pLabel1->setDimensions(CCSizeMake(80, 0));
+            CPCheckBox* pBox1 = CPCheckBox::create(SystemData::getMenuItemImageByPlist("ui_setting_unSelectBtn"), 
+                                                SystemData::getSpriteByPlist("ui_setting_isSelectBtn"), pLabel1);
+            pBox1->setAnchorPoint(CCPointZero);
+            pBox1->setHandler(this, menu_selector(CharacterPanel::hideFashionCB));
+            pBox1->setPosition(SystemData::getLayoutPoint("ui_character_label1"));
+            addChild(pBox1, 3);  // ????????3?????????????
+            pBox1->setChecked(HeroData::getProp(Entity::attr_hideFashion));
+
+            // 12.2 ?????????????
+            CCLabelTTF* pLabel2 = SystemData::getLabelTTF("ui_character_label2");
+            pLabel2->setHorizontalAlignment(kCCTextAlignmentLeft);
+            pLabel2->setColor(ccWHITE);
+            pLabel2->setFontSize(18);
+            CPCheckBox* pBox2 = CPCheckBox::create(SystemData::getMenuItemImageByPlist("ui_setting_unSelectBtn"), 
+                                                SystemData::getSpriteByPlist("ui_setting_isSelectBtn"), pLabel2);
+            pBox2->setAnchorPoint(CCPointZero);
+            pBox2->setHandler(this, menu_selector(CharacterPanel::hideWeaponCB));
+            pBox2->setPosition(SystemData::getLayoutPoint("ui_character_label2"));
+            addChild(pBox2, 3);  // ????????3?????????????
+            pBox2->setChecked(HeroData::getProp(Entity::attr_hideWeapon));
+        }
+    }
+    
+    // 13. ???????????
+    m_menu = GeneralMenu::create();
+    m_menu->setPosition(CCPointZero);
+    addChild(m_menu, 4);  // ??????????4??
+
+    m_itemmenu = GeneralMenu::create();
+    m_itemmenu->setPosition(CCPointZero);
+    addChild(m_itemmenu, 5);  // ?????????5??
+
+    // 14. ??????????????
+    GeneralMenu* pmenu = GeneralMenu::create();
+    pmenu->setPosition(CCPointZero);
+    addChild(pmenu, 6);  // ??????????6??
+
+    // 15. ???????????
+    CCMenuItemImage *pTurnLeft = SystemData::getMenuItemImageByPlist("left_arrow");    // ????????
+    pTurnLeft->setTarget(this, menu_selector(CharacterPanel::turnFaceLeftCallBack));   // ??????????
+    CCMenuItemImage *pTurnRight = SystemData::getMenuItemImageByPlist("right_arrow");  // ????????
+    pTurnRight->setTarget(this, menu_selector(CharacterPanel::turnFaceRightCallBack)); // ??????????
+    pTurnRight->setPosition(ccp(272, 209));  // ????????
+    pTurnLeft->setPosition(ccp(125, 209));   // ???????
+    pmenu->addChild(pTurnRight);             // ????????
+    pmenu->addChild(pTurnLeft);
+
+    // 16. ???????????????
+    initBaseInfo();
+    
+    // 17. ????????????
+    initEquipSlot();	
+
+    // 18. ??????????
+    setTouchEnabled(true);
+	
+    // 19. ???????????????
+    CCMenuItemImage *pshenqi = SystemData::getMenuItemImageByPlist("ui_setting_shenqiBtn");
+    pshenqi->setSelectedImage(SystemData::getSpriteByPlist("ui_setting_shenqiBtn_sel"));  // ???????????
+    pshenqi->setTarget(this, menu_selector(CharacterPanel::turnshenqi));                  // ??????????
+    pshenqi->setPosition(ccp(204, 400));                                                  // ??????????
+    pmenu->addChild(pshenqi);
+    
+    // 20. Delay refresh to ensure toubao icon displays correctly after data sync
+    this->runAction(CCSequence::create(
+        CCDelayTime::create(0.5f),
+        CCCallFunc::create(this, callfunc_selector(CharacterPanel::refreshEquipSlot)),
+        NULL));
+    
+    return true;
+}
+
+/**
+ * CharacterPanel::initBaseInfo - ???????????????
+ * ????????????????????????????
+ */
+void CharacterPanel::initBaseInfo()
+{
+	// 1. ????????
+	std::string strname = "";
+	if (!m_bIsSelf)
+	{
+		strname = GameData::s_user->m_pOtherRole->mName;  // ???????????
+	}
+	else
+	{
+		strname = GameData::s_user->m_pMainRole->mName;   // ???????????
+	}
+	mNameLabel = CCLabelTTF::create(strname.c_str(), "??????", 15);
+	mNameLabel->setColor(ccc3(255, 255, 0));  // ???
+	mNameLabel->setAnchorPoint(ccp(0, 0.5f));
+	mNameLabel->setPosition(ccp(94, 341));
+	m_menu->addChild(mNameLabel);
+
+	// 2. ??????
+	int level = 0;
+	if (!m_bIsSelf)
+	{
+		level = GameData::s_user->m_pOtherRole->mLevel;  // ??????????
+	}
+	else
+	{
+		level = GameData::s_user->m_pMainRole->mLevel;   // ??????????
+	}
+	std::string strlv = "lv" + SystemData::intToString(level);
+	std::string strreborn = "";  // ???????????
+	ccColor3B color = ccWHITE;   // ?????
+	int rebornwidth = 0;         // ??????????
+
+	// 3. ?????????
+	if (!m_bIsSelf)
+	{
+		if (GameData::s_user->m_pOtherRole->mRebornlvl > 0)
+		{
+			StaticData::getRebornStrAndColor(GameData::s_user->m_pOtherRole->mRebornlvl, strreborn, color);
+		}
+	}
+	else
+	{
+		if (HeroData::getProp(Entity::attr_reborn) > 0)
+		{
+			StaticData::getRebornStrAndColor(HeroData::getProp(Entity::attr_reborn), strreborn, color);
+		}
+	}
+
+	// 4. ????????????????????????
+	if (strreborn != "")
+	{
+		CCLabelTTF* pReborn = CCLabelTTF::create(strreborn.c_str(), "??????", 15);
+		pReborn->setColor(color);
+		pReborn->setAnchorPoint(ccp(0, 0.5));
+		pReborn->setPosition(ccp(mNameLabel->getPositionX() + mNameLabel->getContentSize().width + 5, 341));
+		m_menu->addChild(pReborn);
+		rebornwidth = pReborn->getContentSize().width;
+	}
+
+	// 5. ?????????
+	CCLabelTTF* pLevel = CCLabelTTF::create(AToU8(strlv.c_str()), "??????", 15);
+	if (pLevel)
+	{
+		pLevel->setColor(ccc3(255, 255, 0));  // ???
+		pLevel->setAnchorPoint(ccp(0, 0.5));
+		pLevel->setPosition(ccp(mNameLabel->getPositionX() + mNameLabel->getContentSize().width + 5 + rebornwidth, 341));
+		m_menu->addChild(pLevel);
+	}
+
+	// 6. ?????
+	std::string jobname;
+	if (!m_bIsSelf)
+	{
+		if (GameData::s_user->m_pOtherRole->mGhostJob == UserData::CARRER_ZS)
+			jobname = "ui.rolepanel.job.zs";
+		else if (GameData::s_user->m_pOtherRole->mGhostJob == UserData::CARRER_FS)
+			jobname = "ui.rolepanel.job.fs";
+		else if (GameData::s_user->m_pOtherRole->mGhostJob == UserData::CARRER_DS)
+			jobname = "ui.rolepanel.job.ds";
+		else if (GameData::s_user->m_pOtherRole->mGhostJob == UserData::CARRER_OMNI)
+			jobname = "ui.rolepanel.job.omni";
+		else
+			jobname = "ui.rolepanel.job.zs";
+	}
+	else
+	{
+		if (HeroData::getJob() == UserData::CARRER_ZS)
+			jobname = "ui.rolepanel.job.zs";
+		else if (HeroData::getJob() == UserData::CARRER_FS)
+			jobname = "ui.rolepanel.job.fs";
+		else if (HeroData::getJob() == UserData::CARRER_DS)
+			jobname = "ui.rolepanel.job.ds";
+		else if (HeroData::getJob() == UserData::CARRER_OMNI)
+			jobname = "ui.rolepanel.job.omni";
+		else
+			jobname = "ui.rolepanel.job.zs";
+	}
+	CCLabelTTF* pJob = CCLabelTTF::create(SystemData::getLayoutString(jobname).c_str(), "??????", 15);
+	if (pJob)
+	{
+		pJob->setColor(ccc3(255, 255, 0));  // ???
+		pJob->setAnchorPoint(ccp(0, 0.5));
+		pJob->setPosition(ccp(94, 320));
+		m_menu->addChild(pJob);
+	}
+
+	// 7. ???????????????????
+	for (int i = 0; i < Equip_Total; ++i)
+	{
+		CCSprite* sprite = SystemData::getSpriteByPlist("ui.bag.slot.equipitem");
+		sprite->setPosition(EquipPos[i]);
+		sprite->setTag(1000 + i + 1);
+		m_menu->addChild(sprite);
+	}
+}
+
+/**
+ * CharacterPanel::initEquipSlot - ????????????
+ * ????????????????????????????????????????/????
+ */
+void CharacterPanel::initEquipSlot()
+{	
+	// 1. ??????????
+	UserItems items;
+	if (!m_bIsSelf)
+	{
+		items = GameData::s_user->m_pOtherRole->m_pAllItemMap;  // ??????????
+	}
+	else
+	{
+		items = GameData::s_user->getUserItemData()->userItems;  // ??????????
+	}
+
+	// 2. ???????????????????????
+	for (int i = 0; i < Equip_Total; ++i)
+	{
+		CCLabelTTF* name = SystemData::getLabelTTF(EquipName[i].c_str());
+		name->setFontSize(18);
+		name->setColor(ccWHITE);
+		name->setOpacity(255/2);  // ?????
+		name->setPosition(EquipPos[i]);
+		name->setTag(-i-1);  // ?????????????-1??????????0
+
+		// 3. ????????????????????
+		std::map<short,UserItem*>::iterator it = items.find(-i-1);
+		if (it != items.end())
+		{
+			name->setVisible(false);
+		}
+
+		m_itemmenu->addChild(name);
+	}
+
+	// 4. ??????????
+	for(std::map<short,UserItem*>::iterator it = items.begin(); it != items.end(); it++)
+	{
+		if (isPosInThisPanel(it->first))
+		{
+			insertItem(it->second, it->first);	
+		}
+	}
+}
+
+/**
+ * CharacterPanel::insertItem - ????????????????
+ * @param userItem: ??????????
+ * @param pos: ???????
+ */
+/**
+ * CharacterPanel::refreshEquipSlot - Delayed refresh equip slots
+ * Ensure toubao icon displays correctly after data sync
+ */
+void CharacterPanel::refreshEquipSlot()
+{
+	m_bEquipRefreshScheduled = false;  // clear pending flag
+	if (m_itemmenu)
+	{
+		m_itemmenu->removeAllChildren();
+	}
+	initEquipSlot();
+}
+
+void CharacterPanel::insertItem(UserItem* userItem, int pos)
+{
+	if (!userItem)
+		return;
+	
+	int toubaoValue = 0;
+	std::map<int, int>::iterator itToubao = userItem->data.find(28);
+	if (itToubao != userItem->data.end())
+	{
+		toubaoValue = itToubao->second;
+	}
+
+	
+	// 1. Create item icon
+	CCMenuItemImage* icon = CommonFunction::getItemIcon(userItem, false);
+	icon->setTarget(this, menu_selector(CharacterPanel::itemClickCallBack));
+	icon->setPosition(getItemPosition(pos));
+	icon->setTag(-pos);  // ???????????
+	icon->setVisible(getItemVisible(pos));
+	m_itemmenu->addChild(icon);
+
+	// Check if item is insured and show icon
+	if (toubaoValue > 0)  // 28 = Item_Toubao          投保图标
+	{
+		CCSprite* pToubaoIcon = SystemData::getSpriteByPlist("Tips_diamond4");
+		if (pToubaoIcon)
+		{
+			pToubaoIcon->setScale(0.8f);
+			CCPoint iconPos = icon->getPosition();
+			CCSize iconSize = icon->getContentSize();
+			pToubaoIcon->setPosition(ccp(iconPos.x + iconSize.width/2 - 5, iconPos.y - iconSize.height/2 + 53));
+			m_itemmenu->addChild(pToubaoIcon, 1);
+
+		}
+		else
+		{
+
+		}
+	}
+
+
+	// 2. ?????????
+	if (m_heroModel)
+	{
+		if (m_bIsSelf)
+		{
+			m_heroModel->update(GameData::s_user->m_pMainRole);
+		}
+		else
+		{
+			m_heroModel->update(GameData::s_user->m_pOtherRole);
+		}
+	}
+}
+
+/**
+ * CharacterPanel::getItemPosition - ??????????????
+ * @param pos: ???????????
+ * @return: ?????
+ */
+cocos2d::CCPoint CharacterPanel::getItemPosition(int pos)
+{
+	return EquipPos[-pos-1];  // ??????????????
+}
+
+/**
+ * CharacterPanel::turnFaceLeftCallBack - ???????????????
+ * @param pSender: ?????????
+ */
+void CharacterPanel::turnFaceLeftCallBack(CCObject* pSender)
+{
+	if (m_heroModel)
+		m_heroModel->turnLeft();
+}
+
+/**
+ * CharacterPanel::turnFaceRightCallBack - ???????????????
+ * @param pSender: ?????????
+ */
+void CharacterPanel::turnFaceRightCallBack(CCObject* pSender)
+{
+	if (m_heroModel)
+		m_heroModel->turnRight();
+}
+
+/**
+ * CharacterPanel::itemClickCallBack - ?????????????
+ * @param pSender: ?????????????
+ */
+void CharacterPanel::itemClickCallBack(CCObject* pSender)
+{
+	CCNode* pItem = dynamic_cast<CCNode*>(pSender);
+	if(pItem)
+	{
+		int tag = pItem->getTag();
+		if (m_bIsSelf)  // ???????
+		{
+			if(isDoubleClickItem(tag))  // ???
+			{
+				// ?????????????
+				MsgItemOperationRequestUse* req = new MsgItemOperationRequestUse;
+				UserItem* item = GameData::s_user->getUserItemData()->getItemByPosition(-tag);
+				req->iid = item->iid;
+				req->eid = 1;
+				req->cnt = 1;
+				HandleMessage::sendMessage(req);
+			}
+			else  // ????
+			{
+				scheduleOnce(schedule_selector(CharacterPanel::singleClickCallback), DOUBLE_CLICK_TIME);
+			}
+		}
+		else  // ?????????
+		{
+			m_nPrePos = tag;
+			showTooltip(m_nPrePos);
+		}
+	}
+}
+
+/**
+ * CharacterPanel::isDoubleClickItem - ???????????
+ * @param pos: ???????
+ * @return: ???????
+ */
+bool CharacterPanel::isDoubleClickItem(int pos)
+{
+	float curTime = SystemData::getSystemTime();
+	CCLog("prepos: %d, curPos: %d.", m_nPrePos, pos);
+	CCLog("pretime: %f, curTime: %f.", m_nPreTime, curTime);
+	
+	// ??????????????????????????????????
+	if(m_nPrePos == pos && curTime - m_nPreTime < DOUBLE_CLICK_TIME)
+	{
+		m_nPrePos = ITEM_UNUSE_POS;
+		m_nPreTime = curTime;
+		m_bDoubleClick = true;
+		return true;
+	}
+	
+	// ????????????
+	m_nPrePos = pos;
+	m_nPreTime = curTime;
+	m_bDoubleClick = false;
+	return false; 
+}
+
+/**
+ * CharacterPanel::singleClickCallback - ?????????????????
+ * @param dt: ??????
+ */
+void CharacterPanel::singleClickCallback(float dt)
+{
+	if(!m_bDoubleClick)  // ???????
+	{
+		showTooltip(m_nPrePos);
+		m_nPrePos = ITEM_UNUSE_POS;
+		m_nPreTime = SystemData::getSystemTime();
+	}
+}
+
+/**
+ * CharacterPanel::showTooltip - ????????????
+ * @param tag: ??????
+ */
+void CharacterPanel::showTooltip(int tag)
+{
+	if (m_bIsSelf)  // 自身角色
+	{
+		UserItem* userItem = GameData::s_user->getUserItemData()->getItemByPosition(-tag);
+		int type = TAG_Tips_XXTB;  // 使用卸下和投保类型
+		CCPoint anpos = CCPointZero;
+		CCPoint pos = ccp(485, 10);
+		Game::getGameUI()->showTipsPanel(userItem, type, pos, anpos);
+	}
+	else  // ???????
+	{
+		int itemiid = 0;
+		std::map<short,UserItem*>::iterator it = GameData::s_user->m_pOtherRole->m_pAllItemMap.find(-m_nPrePos);
+		if (it != GameData::s_user->m_pOtherRole->m_pAllItemMap.end())
+		{
+			UserItem* userItem = it->second;
+			if (userItem)
+			{
+				itemiid = userItem->iid;
+			}
+		}
+		// ????????????????
+		MsgItemInfoDataGetRequest* pMsg = new MsgItemInfoDataGetRequest;
+		pMsg->pid = GameData::s_user->m_pOtherRole->mID;
+		pMsg->iid = itemiid;
+		HandleMessage::sendMessage(pMsg);
+	}
+}
+
+/**
+ * CharacterPanel::handleEvent - ???????????
+ * @param channel: ??????
+ */
+void CharacterPanel::handleEvent(int channel)
+{
+	if (m_bIsSelf)  // ???????
+	{
+	if(channel == EventProtocol::EVENT_ITEM_UPDDATA)  // Item data update
+	{
+		// Only schedule ONE delayed refresh (dedup). Bag sorting floods this event
+		// with pos>0 changes that never touch equip slots; real equip changes also
+		// fire EVENT_ATTRIBUTE_CHANGE which refreshes immediately.
+		if (!m_bEquipRefreshScheduled)
+		{
+			m_bEquipRefreshScheduled = true;
+			this->runAction(CCSequence::create(
+				CCDelayTime::create(0.1f),
+				CCCallFunc::create(this, callfunc_selector(CharacterPanel::refreshEquipSlot)),
+				NULL));
+		}
+	}
+	else if(channel == EventProtocol::EVENT_ATTRIBUTE_CHANGE)  // Attribute change
+		{
+			if (m_itemmenu)
+			{
+				// ???????????????????????
+				CCArray* pchildarray = m_itemmenu->getChildren();
+				CCObject* pObject = NULL;
+				CCARRAY_FOREACH(pchildarray, pObject)
+				{
+					CCNode *child = dynamic_cast<CCNode *>(pObject);
+					if (child)
+					{
+						CCHide *hi = CCHide::create();
+						CCDelayTime *dl = CCDelayTime::create(0.5f);
+						CCActionInstantRemoveFromParent *rmv = CCActionInstantRemoveFromParent::create();
+						CCAction *action = CCSequence::create(hi, dl, rmv, NULL);
+						child->runAction(action);
+					}
+				}
+				initEquipSlot();  // ?????????????
+			}
+		}
+		else if(channel == EventProtocol::EVENT_AVATAR_CHANGE)  // ????????
+		{
+			if (m_heroModel)
+			{
+				m_heroModel->update(GameData::s_user->m_pMainRole);
+			}
+		}
+	}
+	else  // ???????
+	{
+		if(channel == EventProtocol::EVENT_SELECT_ITEM)  // ?????????
+		{
+			std::map<short,UserItem*>::iterator it = GameData::s_user->m_pOtherRole->m_pAllItemMap.find(-m_nPrePos);
+			if (it != GameData::s_user->m_pOtherRole->m_pAllItemMap.end())
+			{
+				UserItem* userItem = it->second;
+				if (userItem)
+				{
+					Game::getGameUI()->showTipsPanel(userItem, TAG_Tips);
+				}
+			}
+		}
+	}
+}
+
+/**
+ * CharacterPanel::hideFashionCB - ?????????????
+ * @param pSender: ?????????
+ */
+void CharacterPanel::hideFashionCB(CCObject* pSender)
+{
+	FuncData::sendFuncMsgWithID(2, Entity::attr_hideFashion, !HeroData::getProp(Entity::attr_hideFashion));
+}
+
+/**
+ * CharacterPanel::hideWeaponCB - ???????????????
+ * @param pSender: ?????????
+ */
+void CharacterPanel::hideWeaponCB(CCObject* pSender)
+{
+	FuncData::sendFuncMsgWithID(2, Entity::attr_hideWeapon, !HeroData::getProp(Entity::attr_hideWeapon));
+}
+
+/**
+ * CharacterPanel::onCPEvent - CP???????????
+ * @param eventName: ???????
+ */
+void CharacterPanel::onCPEvent(const std::string &eventName)
+{
+	const std::string &source = CPEventHelper::getEventSource();
+	if (eventName == CPEventName::MSG_CHANGE)  // ?????????
+	{
+		if (source == "HandleMessageUpdPlayerBaseNotify")  // ?????????????
+		{
+			if (m_bIsSelf)
+			{
+				GameRole* myRole = GameData::getMyRole();
+				if (myRole) mNameLabel->setString(myRole->mName.c_str());
+			}
+		}
+	}
+}
+
+/**
+ * CharacterPanel::turnshenqi - ?????????????????
+ * @param pSender: ?????????
+ * ?????????????????????????????????
+ */
+void CharacterPanel::turnshenqi(CCObject* pSender)
+{
+    if (m_itemmenu)
+    {
+        if (m_itemmenu->getPositionX() == 0)  // ??????????
+        {
+            // ????????????
+            m_itemmenu->setPosition(ccp(1200, 0));  // ????????
+            m_menu->setPosition(ccp(1200, 0));      // ????????
+            m_bInArtifactMode = true;             // ??????????
+            
+            // ?????????????
+            CCArray* children = getChildren();
+            CCObject* obj;
+            CCARRAY_FOREACH(children, obj)
+            {
+                CPCheckBox* checkbox = dynamic_cast<CPCheckBox*>(obj);
+                if (checkbox)
+                {
+                    checkbox->setVisible(false);
+                }
+            }
+            
+            // ???????????????50????
+            m_heroModel->setPosition(ccp(135, 140));    // ?95 -> 140
+            m_plong->setPosition(ccp(200, 320));        // ?270 -> 320
+            m_rolebkg->setPosition(ccp(200, 165));      // ?115 -> 165
+        }
+        else  // ???????????
+        {
+            // ???????????
+            m_itemmenu->setPosition(ccp(0, 0));    // ????????
+            m_menu->setPosition(ccp(0, 0));        // ????????
+            m_bInArtifactMode = false;            // ?????????
+            
+            // ????????????
+            CCArray* children = getChildren();
+            CCObject* obj;
+            CCARRAY_FOREACH(children, obj)
+            {
+                CPCheckBox* checkbox = dynamic_cast<CPCheckBox*>(obj);
+                if (checkbox)
+                {
+                    checkbox->setVisible(true);
+                }
+            }
+            
+            // ??????????????????
+            m_heroModel->setPosition(ccp(135, 95));    // ????????
+            m_plong->setPosition(ccp(200, 270));        // ????????
+            m_rolebkg->setPosition(ccp(200, 115));      // ????????
+        }
+    }
+}

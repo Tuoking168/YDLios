@@ -1,0 +1,23 @@
+//////////////////////////////////////////////////////////////////////////
+// LocalNetwork.cpp
+// 
+// W.Y-J
+// 2012.5.21
+//////////////////////////////////////////////////////////////////////////
+
+#include "LocalNetwork.h"
+
+LocalNetwork::LocalNetwork()
+{
+
+}
+
+LocalNetwork::~LocalNetwork()
+{
+
+}
+
+LNState LocalNetwork::checkNetworkState()
+{
+	return WiFi;
+}

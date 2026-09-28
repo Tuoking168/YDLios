@@ -1,0 +1,190 @@
+#include "SocialPanel.h"
+#include "ErrorDefinition.h"
+#include "RelationshipDefinition.h"
+#include "SocialModule.h"
+#include "FriendsPanel.h"
+#include "MentorshipPanel.h"
+#include "CouplePanel.h"
+#include "EnemyPanel.h"
+
+#include "event/CPEventDispatcher.h"
+#include "event/CPEventHelper.h"
+
+#include "userdata/SystemData.h"
+#include "userdata/LayoutData.h"
+
+#include "ext/TouchCover.h"
+#include "ext/GeneralMenu.h"
+
+#include "controls/CPItemComponents.h"
+
+
+
+SocialPanel::SocialPanel():
+	m_iCurrentType(-1)
+	,mSwitchMenu(NULL)
+	,m_pSubContainMenu(NULL)
+{
+	CCLog("___SocialPanel construct...");
+	CPEvtDispatcher.addEventListener(CPEventName::MSG_FINISH, this);
+	CPEvtDispatcher.addEventListener(CPEventName::UI_NOTIFY, this);
+	CPEvtDispatcher.addEventListener(CPEventName::UI_CLOSE,this);
+}
+
+
+SocialPanel::~SocialPanel()
+{
+	CCLog("___SocialPanel destroy...");
+	CPEvtDispatcher.removeEventListener(CPEventName::MSG_FINISH, this);
+	CPEvtDispatcher.removeEventListener(CPEventName::UI_NOTIFY, this);
+	CPEvtDispatcher.removeEventListener(CPEventName::UI_CLOSE,this);
+}
+
+bool SocialPanel::init()
+{
+	CCLog("___SocialPanel init...");
+
+	if (!FullScreenPanel::init())
+	{
+		return false;
+	}
+
+	// 添加顶部标题
+	CCSprite *title = LayoutData::getSprite(CPModuleName::SOCIAL, "title");
+	addChild(title);
+	
+	// 添加主框体线条
+	CCScale9Sprite *lineBkg = LayoutData::getScale9Sprite(CPModuleName::SOCIAL, "dialogLingBkg");
+	lineBkg->setAnchorPoint(CCPointZero);
+	addChild(lineBkg);
+
+	// 功能切换按钮(好友、师徒、伴侣、仇人)
+	const CCSize &switchSize = LayoutData::getSize(CPModuleName::SOCIAL, "switch"); 
+	mSwitchMenu = CPItemComponents::create(switchSize, new CPLayoutList(CCSizeMake(87,96), true));
+	mSwitchMenu->setPosition(LayoutData::getPoint(CPModuleName::SOCIAL, "switch")); 
+	addChild(mSwitchMenu);
+
+	const int switchCnt = LayoutData::getInt(CPModuleName::SOCIAL, "switchCnt");
+	for (int i = 0; i < switchCnt; i++)
+	{
+		CCMenuItem *btn = getSwitchItem(i);
+		btn->setTarget(this, menu_selector(SocialPanel::menuCallBack));
+		mSwitchMenu->addItem(btn);
+	}
+
+	m_pSubContainMenu = GeneralMenu::create();
+	m_pSubContainMenu->setPosition(CCPointZero);
+	addChild(m_pSubContainMenu);
+
+	CCNode* firstNode = CCNode::create();
+	firstNode->setTag(SOCIAL_TAG_FRIENDS);
+	mSwitchMenu->setCurrentIndex(SOCIAL_TAG_FRIENDS-1);
+	menuCallBack(firstNode);
+
+	return true;
+}
+
+void SocialPanel::onEnter()
+{
+	FullScreenPanel::onEnter();
+}
+
+void SocialPanel::menuCallBack( CCObject* pSender )
+{
+	CCLog("___SocialPanel menuCallBack...");
+	const int index = mSwitchMenu->getCurrentIndex() + 1;
+
+	if(pSender)
+	{
+		CCLog("___SocialPanel menuCallBack current index:%d", index);
+		CCLog("___SocialPanel menuCallBack m_iCurrentType:%d", m_iCurrentType);
+		if (m_iCurrentType==index)
+		{
+			return;
+		}else{
+			m_pSubContainMenu->removeAllChildren();
+		}
+			
+		CCLayer* panel = NULL;
+		switch(index)
+		{
+			case SOCIAL_TAG_FRIENDS:
+				{
+					CCLog("___SocialPanel SOCIAL_TAG_FRIENDS...");
+					m_iCurrentType = SOCIAL_TAG_FRIENDS;
+
+					panel = FriendsPanel::create();
+					panel->setTag(SOCIAL_TAG_FRIENDS);
+				}
+				break;
+			case SOCIAL_TAG_MENTORSHIP:
+				{
+					m_iCurrentType = SOCIAL_TAG_MENTORSHIP;
+					CPEventHelper::uiNotify("SocialPanel", "", Error::FeaturesNotYetOpen);
+					return;
+
+
+					panel = MentorshipPanel::create();
+					panel->setTag(SOCIAL_TAG_MENTORSHIP);
+				}
+				break;
+			case SOCIAL_TAG_COUPLE:
+				{ 
+					m_iCurrentType = SOCIAL_TAG_COUPLE;
+					CPEventHelper::uiNotify("SocialPanel", "", Error::FeaturesNotYetOpen);
+					return;
+
+
+					panel = CouplePanel::create();
+					panel->setTag(SOCIAL_TAG_COUPLE);
+				}
+				break;
+			case SOCIAL_TAG_ENEMY:
+				{
+					CCLog("___SocialPanel SOCIAL_TAG_ENEMY...");
+					m_iCurrentType = SOCIAL_TAG_ENEMY;
+
+					panel = EnemyPanel::create();
+					panel->setTag(SOCIAL_TAG_ENEMY);
+				}
+				break;
+			default:
+ 				break;
+		}
+		if (panel)
+		{
+			panel->setPosition(CCPointZero);
+			panel->setAnchorPoint(CCPointZero);
+			m_pSubContainMenu->addChild(panel);
+		}
+	}
+}
+
+CCMenuItem * SocialPanel::getSwitchItem( int index )
+{
+	CCScale9Sprite *norm = LayoutData::getScale9Sprite(CPModuleName::SOCIAL, "switchNorm");
+	CCScale9Sprite *sel = LayoutData::getScale9Sprite(CPModuleName::SOCIAL, "switchSel");
+	CCMenuItemSprite *ret = CCMenuItemSprite::create(norm, sel);
+	
+	char ch[16];
+	sprintf(ch, "switch%d", index);
+	const CCSize &itemSize = norm->getContentSize();
+	CCLabelTTF *label = LayoutData::getLabelTTF(CPModuleName::SOCIAL, "switch");
+	label->setString(LayoutData::getString(CPModuleName::SOCIAL, ch).c_str());
+	label->setPosition(ccp(itemSize.width/2, itemSize.height/2));
+	ret->addChild(label);
+	return ret;
+}
+
+void SocialPanel::onCPEvent( const std::string &eventName )
+{
+	CCLog("___SocialPanel onCPEvent...");
+	const std::string &source = CPEventHelper::getEventSource();
+	if (eventName ==  CPEventName::UI_CLOSE)
+	{
+		if (source == "NoticePanel::onGet")
+		{
+			this->removeFromParent();
+		}
+	}
+}

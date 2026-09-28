@@ -1,0 +1,68 @@
+name: Build iOS IPA (armv7, unsigned)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: macos-11
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 选择 Xcode 12.5.1（最后支持 armv7 的版本）
+        run: sudo xcode-select -s /Applications/Xcode_12.5.1.app/Contents/Developer
+
+      - name: 列出工程 target（排错用）
+        run: xcodebuild -list -project Client/ios/Fire.xcodeproj
+
+      - name: 给 pbxproj 打补丁（移除新 SDK 已不存在的 libstdc++/libz.1.2.5 链接引用）
+        run: |
+          cd Client/ios
+          cp Fire.xcodeproj/project.pbxproj Fire.xcodeproj/project.pbxproj.bak
+          sed -i '' -e '/libstdc++.*in Frameworks \*\/,$/d' \
+                    -e '/libz\.1\.2\.5\.dylib in Frameworks \*\/,$/d' \
+                    Fire.xcodeproj/project.pbxproj
+          grep -c "in Frameworks" Fire.xcodeproj/project.pbxproj || true
+
+      - name: 编译 Fire（armv7，免签名）
+        run: |
+          cd Client/ios
+          xcodebuild -project Fire.xcodeproj \
+                     -target Fire \
+                     -configuration Release \
+                     -sdk iphoneos \
+                     ARCHS="armv7" \
+                     ONLY_ACTIVE_ARCH=NO \
+                     IPHONEOS_DEPLOYMENT_TARGET=8.0 \
+                     CLANG_CXX_LIBRARY=libc++ \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     build 2>&1 | tee build.log
+        continue-on-error: true
+
+      - name: 上传编译日志（无论成败都保留）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: Client/ios/build.log
+
+      - name: 打包 ipa
+        run: |
+          APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData "$GITHUB_WORKSPACE" -name "Fire*.app" -type d 2>/dev/null | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::未找到 .app 产物，编译失败，请看 build-log"
+            exit 1
+          fi
+          echo "找到 APP: $APP_PATH"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r Fire-iOS.ipa Payload
+
+      - name: 上传 ipa
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fire-iOS-ipa
+          path: Fire-iOS.ipa

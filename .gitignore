@@ -1,0 +1,29 @@
+# ===== 白名单模式：默认全部忽略，只放行 iOS 编译所需目录 =====
+/*
+!/.gitignore
+!/.github/
+
+# ---- Client：只要 iOS 工程、C++ 源码和资源 ----
+!/Client/
+/Client/*
+!/Client/ios/
+!/Client/src/
+!/Client/data/
+!/Client/data-a/
+!/Client/layout/
+!/Client/script/
+
+# ---- External：只要 iOS 目标引用的引擎/库（排除 boost/Mysql/Sqlite/libcurl(win) 等大件）----
+!/External/
+/External/*
+!/External/cocos2dx/
+!/External/CocosDenshion/
+!/External/extensions/
+!/External/external/
+!/External/scripting/
+
+# ---- 通用杂物 ----
+*.xcuserstate
+*.xcbkptlist
+xcuserdata/
+.DS_Store
